@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check DuckDNS Domain Availability</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --accent-color: #f39c12;
+            --background-color: #ecf0f1;
+            --text-color: #333;
+            --font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 50px;
+            text-align: center;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .card {
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+            transition: transform 0.3s ease;
+            width: 300px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .available {
+            color: green;
+        }
+
+        .unavailable {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Check DuckDNS Domain Availability</h1>
+<div class="search-container">
+    <input type="text" id="domain-input" placeholder="Enter the domain">
+    <input type="text" id="dns-input" placeholder="Enter DNS server (default: dns.google)">
+    <button onclick="checkDomain()">Check Availability</button>
+</div>
+
+<div class="result" id="result"></div>
+
+<script>
+    async function checkDomain() {
+        const domain = document.getElementById('domain-input').value;
+        const dnsServer = document.getElementById('dns-input').value || 'dns.google';
+
+        if (!domain) {
+            alert('Please enter a domain name');
+            return;
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.textContent = 'Checking...';
+
+        // DuckDNS domains are of the format 'subdomain.duckdns.org'
+        const duckdnsDomain = `${domain}.duckdns.org`;
+
+        // Use the entered DNS server or default to Google's DNS-over-HTTPS API
+        try {
+            const response = await fetch(`https://${dnsServer}/resolve?name=${duckdnsDomain}`);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.Answer && data.Answer.length > 0) {
+                    // If there is an answer, the domain is already in use
+                    resultDiv.textContent = `${duckdnsDomain} is already taken or exists!`;
+                    resultDiv.className = 'result unavailable';
+                } else {
+                    // If there is no answer, the domain might be available
+                    resultDiv.textContent = `${duckdnsDomain} is available!`;
+                    resultDiv.className = 'result available';
+                }
+            } else {
+                resultDiv.textContent = 'Error checking domain availability.';
+                resultDiv.className = 'result unavailable';
+            }
+        } catch (error) {
+            resultDiv.textContent = 'Error checking domain availability.';
+            resultDiv.className = 'result unavailable';
+        }
+    }
+</script>
+
+</body>
+</html>
